@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생태계교란 야생식물 제거(4권역) 위치도</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a2332; color:#e0e8f0; height:100vh; display:flex; flex-direction:column; }
+#header {
+  background:linear-gradient(135deg,#0d4f3c,#1a7a5e,#0d4f3c);
+  padding:12px 20px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:2px solid #2aaa7a; flex-shrink:0;
+}
+#header h1 { font-size:15px; font-weight:700; color:#fff; }
+#header .sub { font-size:11px; color:#a0d4bc; margin-top:2px; }
+.badge { background:#2aaa7a; color:#fff; font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; }
+#container { display:flex; flex:1; overflow:hidden; }
+#sidebar {
+  width:270px; min-width:270px; background:#1e2d3d;
+  border-right:1px solid #2a3f55; display:flex; flex-direction:column; overflow:hidden;
+}
+.sidebar-top { padding:12px 14px; border-bottom:1px solid #2a3f55; background:#162230; flex-shrink:0; }
+.sidebar-top .label { font-size:10px; color:#7a9bb5; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.stats { display:flex; gap:10px; }
+.stat { text-align:center; flex:1; }
+.stat .val { font-size:16px; font-weight:700; color:#2aaa7a; }
+.stat .key { font-size:10px; color:#7a9bb5; }
+.tile-toggle { padding:8px 14px; border-bottom:1px solid #2a3f55; display:flex; gap:6px; flex-shrink:0; }
+.tile-btn {
+  flex:1; padding:5px 0; border:1px solid #2a3f55; border-radius:4px;
+  background:#162230; color:#7a9bb5; font-size:11px; cursor:pointer; font-family:inherit;
+}
+.tile-btn.active { background:#0d4f3c; color:#2aaa7a; border-color:#2aaa7a; }
+#segList { flex:1; overflow-y:auto; padding:8px 10px; }
+.seg-group-title {
+  font-size:10px; color:#7a9bb5; text-transform:uppercase; letter-spacing:1px;
+  padding:8px 4px 4px; border-bottom:1px solid #2a3f55; margin-bottom:4px;
+}
+.seg-item {
+  display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px;
+  cursor:pointer; margin-bottom:2px; border-left:3px solid transparent;
+}
+.seg-item:hover { background:#243649; }
+.seg-item.active { background:#0d4f3c; border-left-color:#2aaa7a; }
+.seg-num {
+  width:24px; height:24px; background:#2aaa7a; color:#fff; border-radius:50%;
+  font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.seg-info { flex:1; min-width:0; }
+.seg-loc { font-size:11px; color:#c8dae8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.seg-meta { font-size:10px; color:#7a9bb5; margin-top:1px; }
+.seg-area { font-size:11px; font-weight:700; color:#5bc4a0; flex-shrink:0; }
+#map { flex:1; }
+
+/* 팝업 다크 스타일 */
+.dark-popup .leaflet-popup-content-wrapper {
+  background:#1e2d3d !important; border:1px solid #2aaa7a !important;
+  border-radius:10px !important; box-shadow:0 4px 20px rgba(0,0,0,0.5) !important; padding:0 !important;
+}
+.dark-popup .leaflet-popup-content { margin:0 !important; }
+.dark-popup .leaflet-popup-tip { background:#2aaa7a !important; }
+
+/* 주소 라벨 */
+.lbl-s {
+  background:rgba(13,79,60,0.92); color:#7dffcc;
+  border:1.5px solid #2aaa7a; border-radius:5px;
+  padding:2px 7px; font-size:11px; font-weight:700;
+  white-space:nowrap; font-family:'Malgun Gothic',sans-serif;
+  box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
+}
+.lbl-e {
+  background:rgba(120,20,20,0.92); color:#ffaaaa;
+  border:1.5px solid #e74c3c; border-radius:5px;
+  padding:2px 7px; font-size:11px; font-weight:700;
+  white-space:nowrap; font-family:'Malgun Gothic',sans-serif;
+  box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
+}
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:#162230; }
+::-webkit-scrollbar-thumb { background:#2a4a62; border-radius:2px; }
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <h1>🌿 생태계교란 야생식물 제거(4권역) — 파주시</h1>
+    <div class="sub">2026. 5. | 기후위기대응과 | 총 32개소</div>
+  </div>
+  <div class="badge">위치도</div>
+</div>
+<div id="container">
+  <div id="sidebar">
+    <div class="sidebar-top">
+      <div class="label">공사 개요</div>
+      <div class="stats">
+        <div class="stat"><div class="val">32</div><div class="key">개소</div></div>
+        <div class="stat"><div class="val">24,410</div><div class="key">연장(m)</div></div>
+        <div class="stat"><div class="val">48,870</div><div class="key">면적(㎡)</div></div>
+      </div>
+    </div>
+    <div class="tile-toggle">
+      <button class="tile-btn active" onclick="setTile('road',this)">🗺 도로지도</button>
+      <button class="tile-btn" onclick="setTile('sat',this)">🛰 위성지도</button>
+    </div>
+    <div id="segList"></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<script>
+const SEGMENTS = [
+  {no:1,  from:'용미리 478-1',    to:'용미리 766-8',      w:3,l:1400,area:4200, s:[37.7450701,126.8734352],e:[37.7474611,126.8618067]},
+  {no:2,  from:'용미리 479-12',   to:'용미리 341-16',     w:3,l:800, area:2400, s:[37.7446427,126.8738293],e:[37.7391117,126.8783848]},
+  {no:3,  from:'분수리 212-1',    to:null,                w:2,l:300, area:600,  s:[37.7588973,126.8681094],e:null},
+  {no:4,  from:'분수리 324-1',    to:'분수리 63-1',       w:3,l:1400,area:4200, s:[37.7603034,126.8618699],e:[37.7534047,126.8783365]},
+  {no:5,  from:'분수리 470-1',    to:'분수리 324',        w:3,l:1400,area:4200, s:[37.7695875,126.8501404],e:[37.7603034,126.8618699]},
+  {no:6,  from:'창만리 512-10',   to:'창만리 541-25',     w:3,l:600, area:1800, s:[37.7981195,126.8576916],e:[37.8024368,126.8551474]},
+  {no:7,  from:'창만리 95-8',     to:'창만리 168-4',      w:2,l:700, area:1400, s:[37.8018648,126.8797276],e:[37.8000499,126.8723017]},
+  {no:8,  from:'창만리 366-3',    to:'창만리 307-3',      w:3,l:600, area:1800, s:[37.7961715,126.8637102],e:[37.7930,   126.8660]},
+  {no:9,  from:'창만리 307-3',    to:'마장리 289-6',      w:3,l:900, area:2700, s:[37.7930,   126.8660],   e:[37.7891851,126.8700111]},
+  {no:10, from:'신산리 467-1',    to:'신산리 367-10',     w:3,l:700, area:2100, s:[37.7892278,126.8437649],e:[37.7835186,126.8453540]},
+  {no:11, from:'신산리 413-3',    to:'신산리 290-2',      w:3,l:1400,area:4200, s:[37.8003355,126.8373742],e:[37.7913606,126.8431622]},
+  {no:12, from:'발랑리 298-1',    to:'발랑리 312-1',      w:3,l:650, area:1950, s:[37.8037680,126.8893072],e:[37.8034064,126.8848786]},
+  {no:13, from:'영장리 157-4',    to:'영장리 16-38',      w:3,l:1400,area:4200, s:[37.7720,   126.9030],   e:[37.7680,   126.9100]},
+  {no:14, from:'능안리 1693-27',  to:'등원리 275-12',     w:3,l:1000,area:3000, s:[37.7461749,126.7937828],e:[37.7545943,126.8024448]},
+  {no:15, from:'능안리 1037-5',   to:'능안리 1080',       w:3,l:400, area:1200, s:[37.7378074,126.7904395],e:[37.7343190,126.7939993]},
+  {no:16, from:'등원리 251-1',    to:'뇌조리 102-14',     w:3,l:1300,area:3900, s:[37.7555983,126.8022263],e:[37.7480,   126.8200]},
+  {no:17, from:'능안리 1683-2',   to:'대원리 1414',       w:3,l:1400,area:4200, s:[37.7369773,126.7975633],e:[37.7350,   126.8200]},
+  {no:18, from:'대원리 113-2',    to:'대원리 1237',       w:3,l:900, area:2700, s:[37.7338509,126.8246414],e:[37.7380,   126.8330]},
+  {no:19, from:'장곡리 617-3',    to:'장곡리 518-2',      w:3,l:900, area:2700, s:[37.7358285,126.8482023],e:[37.7400,   126.8560]},
+  {no:20, from:'봉일천리 104-1',  to:'봉일천리 산15-19',  w:3,l:800, area:2400, s:[37.7413261,126.8152847],e:[37.7380,   126.8240]},
+  {no:21, from:'봉일천리 64-18',  to:'봉일천리 64-35',    w:3,l:500, area:1500, s:[37.7396572,126.8237084],e:[37.7420,   126.8280]},
+  {no:22, from:'당하동 304-14',   to:null,                w:2,l:500, area:1000, s:[37.7400,   126.7520],   e:null},
+  {no:23, from:'당하동 240-183',  to:null,                w:2,l:800, area:1600, s:[37.7391502,126.7468531],e:null},
+  {no:24, from:'당하동 560',      to:null,                w:3,l:350, area:1050, s:[37.7394144,126.7496412],e:null},
+  {no:25, from:'동패동 산165-2',  to:null,                w:2,l:500, area:1000, s:[37.7200,   126.7550],   e:null},
+  {no:26, from:'상지석동 1601',   to:null,                w:3,l:1200,area:3600, s:[37.7220,   126.7620],   e:null},
+  {no:27, from:'상지석동 543-1',  to:null,                w:2,l:150, area:300,  s:[37.7200,   126.7580],   e:null},
+  {no:28, from:'상지석동 558-2',  to:null,                w:2,l:60,  area:120,  s:[37.7190,   126.7590],   e:null},
+  {no:29, from:'동패동 1692',     to:null,                w:3,l:200, area:600,  s:[37.7230,   126.7600],   e:null},
+  {no:30, from:'동패동 2081',     to:null,                w:4,l:200, area:800,  s:[37.7240,   126.7610],   e:null},
+  {no:31, from:'동패동 2128',     to:null,                w:4,l:200, area:800,  s:[37.7250,   126.7620],   e:null},
+  {no:32, from:'아동동 84-8',     to:'아동동 104-11',     w:2,l:800, area:1600, s:[37.7616693,126.7940825],e:[37.7580,   126.8000]},
+];
+
+// 지도 초기화
+const map = L.map('map').setView([37.764, 126.830], 11);
+
+const tileLayers = {
+  road: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap contributors', maxZoom:19
+  }),
+  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution:'© Esri World Imagery', maxZoom:19
+  })
+};
+tileLayers.road.addTo(map);
+
+function setTile(type, btn) {
+  Object.values(tileLayers).forEach(t => { if(map.hasLayer(t)) map.removeLayer(t); });
+  tileLayers[type].addTo(map);
+  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// 마커 아이콘
+function makeIcon(num, isStart) {
+  const color = isStart ? '#2aaa7a' : '#e74c3c';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38">
+    <path d="M15 0C9 0 4 5 4 11c0 8.5 11 27 11 27s11-18.5 11-27C26 5 21 0 15 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="15" cy="11" r="6.5" fill="#fff"/>
+    <text x="15" y="15" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="${color}">${num}</text>
+  </svg>`;
+  return L.divIcon({ html:svg, className:'', iconSize:[30,38], iconAnchor:[15,38], popupAnchor:[0,-42] });
+}
+
+// 주소 라벨
+function makeLabel(addr, isStart) {
+  return L.divIcon({
+    html: `<div class="${isStart?'lbl-s':'lbl-e'}">${isStart?'▶':'■'} ${addr}</div>`,
+    className:'', iconSize:null, iconAnchor:[-4, 50]
+  });
+}
+
+// 팝업 내용
+function popupHTML(seg, isStart) {
+  const toText = seg.to || '단독 구간';
+  const tag = isStart
+    ? `<span style="background:#2aaa7a;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">🟢 출발점</span>`
+    : `<span style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">🔴 도착점</span>`;
+  return `<div style="font-family:'Malgun Gothic',sans-serif;min-width:190px;background:#1e2d3d;color:#c8dae8;border-radius:8px;padding:12px 14px;">
+    <div style="font-size:13px;font-weight:700;color:#2aaa7a;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a3f55;">구간 ${seg.no}</div>
+    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">출발</span><b style="color:#7dffcc;">${seg.from}</b></div>
+    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">도착</span><b style="color:#ffaaaa;">${toText}</b></div>
+    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">작업폭</span><b>${seg.w}m</b></div>
+    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">연장</span><b>${seg.l.toLocaleString()}m</b></div>
+    <div style="font-size:11px;margin-bottom:8px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">면적</span><b>${seg.area.toLocaleString()}㎡</b></div>
+    ${tag}
+  </div>`;
+}
+
+const popOpts = { className:'dark-popup', maxWidth:230, closeButton:true };
+const segMarkers = {};
+let activeNo = null;
+
+SEGMENTS.forEach(seg => {
+  // 출발 마커 + 라벨
+  const sm = L.marker(seg.s, {icon:makeIcon(seg.no,true)}).addTo(map).bindPopup(popupHTML(seg,true), popOpts);
+  segMarkers[seg.no] = sm;
+  L.marker(seg.s, {icon:makeLabel(seg.from,true), interactive:false, zIndexOffset:-100}).addTo(map);
+
+  if (seg.e) {
+    // 도착 마커 + 라벨
+    L.marker(seg.e, {icon:makeIcon(seg.no,false)}).addTo(map).bindPopup(popupHTML(seg,false), popOpts);
+    L.marker(seg.e, {icon:makeLabel(seg.to,false), interactive:false, zIndexOffset:-100}).addTo(map);
+    // 구간선
+    L.polyline([seg.s, seg.e], {color:'#2aaa7a', weight:5, opacity:0.85}).addTo(map);
+  }
+});
+
+// 사이드바
+const GROUPS = {
+  '광탄면 ①~⑫': [1,2,3,4,5,6,7,8,9,10,11,12],
+  '조리읍 ⑬~㉑': [13,14,15,16,17,18,19,20,21],
+  '운정동 ㉒~㉜': [22,23,24,25,26,27,28,29,30,31,32],
+};
+const segListEl = document.getElementById('segList');
+
+Object.entries(GROUPS).forEach(([title, nos]) => {
+  const gt = document.createElement('div');
+  gt.className = 'seg-group-title';
+  gt.textContent = title;
+  segListEl.appendChild(gt);
+
+  nos.forEach(n => {
+    const seg = SEGMENTS[n-1];
+    const el = document.createElement('div');
+    el.className = 'seg-item'; el.id = `si-${n}`;
+    const toTxt = seg.to ? ` → ${seg.to}` : '';
+    el.innerHTML = `
+      <div class="seg-num">${n}</div>
+      <div class="seg-info">
+        <div class="seg-loc">${seg.from}${toTxt}</div>
+        <div class="seg-meta">폭 ${seg.w}m × ${seg.l.toLocaleString()}m</div>
+      </div>
+      <div class="seg-area">${seg.area.toLocaleString()}㎡</div>`;
+    el.onclick = () => {
+      map.setView(seg.s, 16);
+      segMarkers[n].openPopup();
+      if (activeNo) document.getElementById(`si-${activeNo}`).classList.remove('active');
+      el.classList.add('active');
+      activeNo = n;
+    };
+    segListEl.appendChild(el);
+  });
+});
+</script>
+</body>
+</html>
