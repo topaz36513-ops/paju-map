@@ -54,29 +54,21 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 .seg-meta { font-size:10px; color:#7a9bb5; margin-top:1px; }
 .seg-area { font-size:11px; font-weight:700; color:#5bc4a0; flex-shrink:0; }
 #map { flex:1; }
-
-/* 팝업 다크 스타일 */
 .dark-popup .leaflet-popup-content-wrapper {
   background:#1e2d3d !important; border:1px solid #2aaa7a !important;
   border-radius:10px !important; box-shadow:0 4px 20px rgba(0,0,0,0.5) !important; padding:0 !important;
 }
 .dark-popup .leaflet-popup-content { margin:0 !important; }
 .dark-popup .leaflet-popup-tip { background:#2aaa7a !important; }
-
-/* 주소 라벨 */
 .lbl-s {
-  background:rgba(13,79,60,0.92); color:#7dffcc;
-  border:1.5px solid #2aaa7a; border-radius:5px;
-  padding:2px 7px; font-size:11px; font-weight:700;
-  white-space:nowrap; font-family:'Malgun Gothic',sans-serif;
-  box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
+  background:rgba(13,79,60,0.92); color:#7dffcc; border:1.5px solid #2aaa7a; border-radius:5px;
+  padding:2px 7px; font-size:11px; font-weight:700; white-space:nowrap;
+  font-family:'Malgun Gothic',sans-serif; box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
 }
 .lbl-e {
-  background:rgba(120,20,20,0.92); color:#ffaaaa;
-  border:1.5px solid #e74c3c; border-radius:5px;
-  padding:2px 7px; font-size:11px; font-weight:700;
-  white-space:nowrap; font-family:'Malgun Gothic',sans-serif;
-  box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
+  background:rgba(120,20,20,0.92); color:#ffaaaa; border:1.5px solid #e74c3c; border-radius:5px;
+  padding:2px 7px; font-size:11px; font-weight:700; white-space:nowrap;
+  font-family:'Malgun Gothic',sans-serif; box-shadow:0 1px 6px rgba(0,0,0,0.5); pointer-events:none;
 }
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:#162230; }
@@ -109,7 +101,6 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
   </div>
   <div id="map"></div>
 </div>
-
 <script>
 const SEGMENTS = [
   {no:1,  from:'용미리 478-1',    to:'용미리 766-8',      w:3,l:1400,area:4200, s:[37.7450701,126.8734352],e:[37.7474611,126.8618067]},
@@ -146,16 +137,10 @@ const SEGMENTS = [
   {no:32, from:'아동동 84-8',     to:'아동동 104-11',     w:2,l:800, area:1600, s:[37.7616693,126.7940825],e:[37.7580,   126.8000]},
 ];
 
-// 지도 초기화
 const map = L.map('map').setView([37.764, 126.830], 11);
-
 const tileLayers = {
-  road: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'© OpenStreetMap contributors', maxZoom:19
-  }),
-  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution:'© Esri World Imagery', maxZoom:19
-  })
+  road: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}),
+  sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution:'© Esri', maxZoom:19})
 };
 tileLayers.road.addTo(map);
 
@@ -166,7 +151,6 @@ function setTile(type, btn) {
   btn.classList.add('active');
 }
 
-// 마커 아이콘
 function makeIcon(num, isStart) {
   const color = isStart ? '#2aaa7a' : '#e74c3c';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38">
@@ -177,15 +161,13 @@ function makeIcon(num, isStart) {
   return L.divIcon({ html:svg, className:'', iconSize:[30,38], iconAnchor:[15,38], popupAnchor:[0,-42] });
 }
 
-// 주소 라벨
 function makeLabel(addr, isStart) {
   return L.divIcon({
-    html: `<div class="${isStart?'lbl-s':'lbl-e'}">${isStart?'▶':'■'} ${addr}</div>`,
-    className:'', iconSize:null, iconAnchor:[-4, 50]
+    html:`<div class="${isStart?'lbl-s':'lbl-e'}">${isStart?'▶':'■'} ${addr}</div>`,
+    className:'', iconSize:null, iconAnchor:[-4,50]
   });
 }
 
-// 팝업 내용
 function popupHTML(seg, isStart) {
   const toText = seg.to || '단독 구간';
   const tag = isStart
@@ -207,34 +189,26 @@ const segMarkers = {};
 let activeNo = null;
 
 SEGMENTS.forEach(seg => {
-  // 출발 마커 + 라벨
   const sm = L.marker(seg.s, {icon:makeIcon(seg.no,true)}).addTo(map).bindPopup(popupHTML(seg,true), popOpts);
   segMarkers[seg.no] = sm;
   L.marker(seg.s, {icon:makeLabel(seg.from,true), interactive:false, zIndexOffset:-100}).addTo(map);
-
   if (seg.e) {
-    // 도착 마커 + 라벨
     L.marker(seg.e, {icon:makeIcon(seg.no,false)}).addTo(map).bindPopup(popupHTML(seg,false), popOpts);
     L.marker(seg.e, {icon:makeLabel(seg.to,false), interactive:false, zIndexOffset:-100}).addTo(map);
-    // 구간선
-    L.polyline([seg.s, seg.e], {color:'#2aaa7a', weight:5, opacity:0.85}).addTo(map);
   }
 });
 
-// 사이드바
 const GROUPS = {
   '광탄면 ①~⑫': [1,2,3,4,5,6,7,8,9,10,11,12],
   '조리읍 ⑬~㉑': [13,14,15,16,17,18,19,20,21],
   '운정동 ㉒~㉜': [22,23,24,25,26,27,28,29,30,31,32],
 };
 const segListEl = document.getElementById('segList');
-
 Object.entries(GROUPS).forEach(([title, nos]) => {
   const gt = document.createElement('div');
   gt.className = 'seg-group-title';
   gt.textContent = title;
   segListEl.appendChild(gt);
-
   nos.forEach(n => {
     const seg = SEGMENTS[n-1];
     const el = document.createElement('div');
@@ -251,8 +225,7 @@ Object.entries(GROUPS).forEach(([title, nos]) => {
       map.setView(seg.s, 16);
       segMarkers[n].openPopup();
       if (activeNo) document.getElementById(`si-${activeNo}`).classList.remove('active');
-      el.classList.add('active');
-      activeNo = n;
+      el.classList.add('active'); activeNo = n;
     };
     segListEl.appendChild(el);
   });
