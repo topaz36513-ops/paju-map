@@ -19,20 +19,46 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 #header .sub { font-size:10px; color:#a0d4bc; margin-top:1px; }
 .badge { background:#2aaa7a; color:#fff; font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
 
-/* 지도 타입 토글 */
-#map-controls {
-  position:absolute; top:70px; right:10px; z-index:500;
-  display:flex; flex-direction:column; gap:6px;
-}
-.map-btn {
-  background:rgba(30,45,61,0.92); color:#c8dae8; border:1px solid #2a3f55;
-  border-radius:8px; padding:6px 10px; font-size:11px; cursor:pointer;
-  font-family:inherit; white-space:nowrap;
-}
-.map-btn.active { background:#0d4f3c; color:#2aaa7a; border-color:#2aaa7a; }
-
-/* 지도 */
 #map { flex:1; z-index:1; }
+
+/* 구간 정보 카드 (지도 위에 떠있음) */
+#seg-card {
+  display:none;
+  position:fixed;
+  top:65px; left:50%; transform:translateX(-50%);
+  z-index:900;
+  background:#1e2d3d;
+  border:2px solid #2aaa7a;
+  border-radius:12px;
+  padding:12px 16px;
+  min-width:280px;
+  max-width:90vw;
+  box-shadow:0 4px 24px rgba(0,0,0,0.6);
+}
+#seg-card .card-title {
+  font-size:14px; font-weight:700; color:#2aaa7a;
+  margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #2a3f55;
+  display:flex; justify-content:space-between; align-items:center;
+}
+#seg-card .card-close {
+  color:#7a9bb5; cursor:pointer; font-size:18px; line-height:1;
+}
+#seg-card .card-row {
+  display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px;
+}
+#seg-card .card-dot-s {
+  width:12px; height:12px; background:#2aaa7a; border-radius:50%; flex-shrink:0;
+}
+#seg-card .card-dot-e {
+  width:12px; height:12px; background:#e74c3c; border-radius:50%; flex-shrink:0;
+}
+#seg-card .card-addr { color:#c8dae8; font-weight:600; }
+#seg-card .card-meta {
+  font-size:11px; color:#7a9bb5; margin-top:6px; padding-top:6px;
+  border-top:1px solid #2a3f55;
+  display:flex; gap:12px;
+}
+#seg-card .card-meta span { color:#5bc4a0; font-weight:700; }
 
 /* 바텀시트 */
 #bottom-sheet {
@@ -47,20 +73,14 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 }
 #bottom-sheet.open { transform:translateY(0); }
 
-/* 핸들 */
 #sheet-handle {
   padding:12px 0 8px;
   display:flex; flex-direction:column; align-items:center; gap:4px;
   cursor:pointer; flex-shrink:0;
 }
-.handle-bar {
-  width:40px; height:4px; background:#2a4a62; border-radius:2px;
-}
-#sheet-title {
-  font-size:12px; color:#7a9bb5; letter-spacing:0.5px;
-}
+.handle-bar { width:40px; height:4px; background:#2a4a62; border-radius:2px; }
+#sheet-title { font-size:12px; color:#7a9bb5; letter-spacing:0.5px; }
 
-/* 통계 */
 #sheet-stats {
   display:flex; gap:0; border-bottom:1px solid #2a3f55; flex-shrink:0;
   padding:8px 16px 10px;
@@ -69,7 +89,6 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 .stat .val { font-size:18px; font-weight:700; color:#2aaa7a; }
 .stat .key { font-size:10px; color:#7a9bb5; }
 
-/* 지도 타입 버튼 (바텀시트 안) */
 .tile-toggle { padding:8px 14px; border-bottom:1px solid #2a3f55; display:flex; gap:6px; flex-shrink:0; }
 .tile-btn {
   flex:1; padding:6px 0; border:1px solid #2a3f55; border-radius:6px;
@@ -77,7 +96,6 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 }
 .tile-btn.active { background:#0d4f3c; color:#2aaa7a; border-color:#2aaa7a; }
 
-/* 목록 */
 #segList { flex:1; overflow-y:auto; padding:8px 10px 20px; }
 .seg-group-title {
   font-size:10px; color:#7a9bb5; text-transform:uppercase; letter-spacing:1px;
@@ -86,7 +104,6 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 .seg-item {
   display:flex; align-items:center; gap:8px; padding:9px 8px; border-radius:8px;
   cursor:pointer; margin-bottom:3px; border-left:3px solid transparent;
-  active-background:#243649;
 }
 .seg-item:active { background:#243649; }
 .seg-item.active { background:#0d4f3c; border-left-color:#2aaa7a; }
@@ -99,15 +116,14 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
 .seg-meta { font-size:10px; color:#7a9bb5; margin-top:2px; }
 .seg-area { font-size:12px; font-weight:700; color:#5bc4a0; flex-shrink:0; }
 
-/* 팝업 */
-.dark-popup .leaflet-popup-content-wrapper {
-  background:#1e2d3d !important; border:1px solid #2aaa7a !important;
-  border-radius:10px !important; box-shadow:0 4px 20px rgba(0,0,0,0.5) !important; padding:0 !important;
+/* 강조 마커 펄스 */
+@keyframes pulse {
+  0% { transform:scale(1); opacity:1; }
+  50% { transform:scale(1.4); opacity:0.6; }
+  100% { transform:scale(1); opacity:1; }
 }
-.dark-popup .leaflet-popup-content { margin:0 !important; }
-.dark-popup .leaflet-popup-tip { background:#2aaa7a !important; }
+.pulse { animation:pulse 1.2s ease-in-out infinite; }
 
-/* 주소 라벨 */
 .lbl-s {
   background:rgba(13,79,60,0.92); color:#7dffcc; border:1.5px solid #2aaa7a; border-radius:5px;
   padding:2px 7px; font-size:11px; font-weight:700; white-space:nowrap;
@@ -134,6 +150,27 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
   <div class="badge">위치도</div>
 </div>
 
+<!-- 구간 정보 카드 -->
+<div id="seg-card">
+  <div class="card-title">
+    <span id="card-title-text">구간 1</span>
+    <span class="card-close" onclick="closeCard()">✕</span>
+  </div>
+  <div class="card-row">
+    <div class="card-dot-s"></div>
+    <div><div style="font-size:10px;color:#7a9bb5;">출발점</div><div class="card-addr" id="card-from"></div></div>
+  </div>
+  <div class="card-row">
+    <div class="card-dot-e"></div>
+    <div><div style="font-size:10px;color:#7a9bb5;">도착점</div><div class="card-addr" id="card-to"></div></div>
+  </div>
+  <div class="card-meta">
+    <div>폭 <span id="card-w"></span>m</div>
+    <div>연장 <span id="card-l"></span>m</div>
+    <div>면적 <span id="card-area"></span>㎡</div>
+  </div>
+</div>
+
 <div id="map"></div>
 
 <!-- 바텀시트 -->
@@ -142,18 +179,15 @@ body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#1a233
     <div class="handle-bar"></div>
     <div id="sheet-title">▲ 구간 목록 보기</div>
   </div>
-
   <div id="sheet-stats">
     <div class="stat"><div class="val">32</div><div class="key">개소</div></div>
     <div class="stat"><div class="val">24,410</div><div class="key">연장(m)</div></div>
     <div class="stat"><div class="val">48,870</div><div class="key">면적(㎡)</div></div>
   </div>
-
   <div class="tile-toggle">
     <button class="tile-btn active" onclick="setTile('road',this)">🗺 도로지도</button>
     <button class="tile-btn" onclick="setTile('sat',this)">🛰 위성지도</button>
   </div>
-
   <div id="segList"></div>
 </div>
 
@@ -193,7 +227,6 @@ const SEGMENTS = [
   {no:32, from:'아동동 84-8',     to:'아동동 104-11',     w:2,l:800, area:1600, s:[37.7616693,126.7940825],e:[37.7580,   126.8000]},
 ];
 
-// 지도
 const map = L.map('map', {zoomControl:true}).setView([37.764, 126.830], 11);
 const tileLayers = {
   road: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}),
@@ -208,15 +241,22 @@ function setTile(type, btn) {
   btn.classList.add('active');
 }
 
-// 마커
-function makeIcon(num, isStart) {
+function makeIcon(num, isStart, highlight=false) {
   const color = isStart ? '#2aaa7a' : '#e74c3c';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38">
-    <path d="M15 0C9 0 4 5 4 11c0 8.5 11 27 11 27s11-18.5 11-27C26 5 21 0 15 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-    <circle cx="15" cy="11" r="6.5" fill="#fff"/>
-    <text x="15" y="15" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="${color}">${num}</text>
+  const size = highlight ? 40 : 30;
+  const r = highlight ? 9 : 6.5;
+  const fontSize = highlight ? 11 : 8;
+  const strokeW = highlight ? 2.5 : 1.5;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${Math.round(size*1.27)}">
+    <path d="M${size/2} 0C${size*0.3} 0 ${size*0.133} ${size*0.167} ${size*0.133} ${size*0.367}c0 ${size*0.283} ${size*0.367} ${size*0.9} ${size*0.367} ${size*0.9}s${size*0.367}-${size*0.617} ${size*0.367}-${size*0.9}C${size*0.867} ${size*0.167} ${size*0.7} 0 ${size/2} 0z" fill="${color}" stroke="#fff" stroke-width="${strokeW}"/>
+    <circle cx="${size/2}" cy="${size*0.367}" r="${r}" fill="#fff"/>
+    <text x="${size/2}" y="${size*0.367+fontSize*0.4}" text-anchor="middle" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="700" fill="${color}">${num}</text>
   </svg>`;
-  return L.divIcon({ html:svg, className:'', iconSize:[30,38], iconAnchor:[15,38], popupAnchor:[0,-42] });
+  const h = Math.round(size*1.27);
+  return L.divIcon({
+    html: highlight ? `<div class="pulse">${svg}</div>` : svg,
+    className:'', iconSize:[size,h], iconAnchor:[size/2,h], popupAnchor:[0,-h]
+  });
 }
 
 function makeLabel(addr, isStart) {
@@ -226,56 +266,84 @@ function makeLabel(addr, isStart) {
   });
 }
 
-function popupHTML(seg, isStart) {
-  const toText = seg.to || '단독 구간';
-  const tag = isStart
-    ? `<span style="background:#2aaa7a;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">🟢 출발점</span>`
-    : `<span style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">🔴 도착점</span>`;
-  return `<div style="font-family:'Malgun Gothic',sans-serif;min-width:190px;background:#1e2d3d;color:#c8dae8;border-radius:8px;padding:12px 14px;">
-    <div style="font-size:13px;font-weight:700;color:#2aaa7a;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a3f55;">구간 ${seg.no}</div>
-    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">출발</span><b style="color:#7dffcc;">${seg.from}</b></div>
-    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">도착</span><b style="color:#ffaaaa;">${toText}</b></div>
-    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">작업폭</span><b>${seg.w}m</b></div>
-    <div style="font-size:11px;margin-bottom:3px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">연장</span><b>${seg.l.toLocaleString()}m</b></div>
-    <div style="font-size:11px;margin-bottom:8px;"><span style="color:#7a9bb5;width:48px;display:inline-block;">면적</span><b>${seg.area.toLocaleString()}㎡</b></div>
-    ${tag}
-  </div>`;
+const segMarkers = {}; // {no: {sm, em, slbl, elbl}}
+let activeNo = null;
+let highlightMarkers = [];
+
+function clearHighlight() {
+  highlightMarkers.forEach(m => map.removeLayer(m));
+  highlightMarkers = [];
 }
 
-const popOpts = { className:'dark-popup', maxWidth:230, closeButton:true };
-const segMarkers = {};
-let activeNo = null;
-
 SEGMENTS.forEach(seg => {
-  const sm = L.marker(seg.s, {icon:makeIcon(seg.no,true)}).addTo(map).bindPopup(popupHTML(seg,true), popOpts);
-  segMarkers[seg.no] = sm;
-  L.marker(seg.s, {icon:makeLabel(seg.from,true), interactive:false, zIndexOffset:-100}).addTo(map);
+  const sm = L.marker(seg.s, {icon:makeIcon(seg.no,true)}).addTo(map);
+  const slbl = L.marker(seg.s, {icon:makeLabel(seg.from,true), interactive:false, zIndexOffset:-100}).addTo(map);
+  let em = null, elbl = null;
   if (seg.e) {
-    L.marker(seg.e, {icon:makeIcon(seg.no,false)}).addTo(map).bindPopup(popupHTML(seg,false), popOpts);
-    L.marker(seg.e, {icon:makeLabel(seg.to,false), interactive:false, zIndexOffset:-100}).addTo(map);
+    em = L.marker(seg.e, {icon:makeIcon(seg.no,false)}).addTo(map);
+    elbl = L.marker(seg.e, {icon:makeLabel(seg.to,false), interactive:false, zIndexOffset:-100}).addTo(map);
   }
+  segMarkers[seg.no] = {sm, em, slbl, elbl};
 });
+
+function focusSeg(n) {
+  const seg = SEGMENTS[n-1];
+  clearHighlight();
+
+  // 강조 마커 추가
+  const hS = L.marker(seg.s, {icon:makeIcon(seg.no,true,true), zIndexOffset:1000}).addTo(map);
+  highlightMarkers.push(hS);
+
+  if (seg.e) {
+    const hE = L.marker(seg.e, {icon:makeIcon(seg.no,false,true), zIndexOffset:1000}).addTo(map);
+    highlightMarkers.push(hE);
+    // 두 점 모두 보이게 fitBounds
+    const bounds = L.latLngBounds([seg.s, seg.e]);
+    map.fitBounds(bounds, {padding:[60,60], maxZoom:16});
+  } else {
+    map.setView(seg.s, 16);
+  }
+
+  // 카드 표시
+  document.getElementById('card-title-text').textContent = `구간 ${seg.no}`;
+  document.getElementById('card-from').textContent = seg.from;
+  document.getElementById('card-to').textContent = seg.to || '단독 구간';
+  document.getElementById('card-w').textContent = seg.w;
+  document.getElementById('card-l').textContent = seg.l.toLocaleString();
+  document.getElementById('card-area').textContent = seg.area.toLocaleString();
+  document.getElementById('seg-card').style.display = 'block';
+
+  // 시트 닫기
+  sheetOpen = false;
+  document.getElementById('bottom-sheet').classList.remove('open');
+  document.getElementById('sheet-title').textContent = '▲ 구간 목록 보기';
+
+  if (activeNo) document.getElementById(`si-${activeNo}`)?.classList.remove('active');
+  document.getElementById(`si-${n}`)?.classList.add('active');
+  activeNo = n;
+}
+
+function closeCard() {
+  document.getElementById('seg-card').style.display = 'none';
+  clearHighlight();
+}
 
 // 바텀시트
 let sheetOpen = false;
 function toggleSheet() {
   sheetOpen = !sheetOpen;
-  const sheet = document.getElementById('bottom-sheet');
-  const title = document.getElementById('sheet-title');
-  sheet.classList.toggle('open', sheetOpen);
-  title.textContent = sheetOpen ? '▼ 닫기' : '▲ 구간 목록 보기';
+  document.getElementById('bottom-sheet').classList.toggle('open', sheetOpen);
+  document.getElementById('sheet-title').textContent = sheetOpen ? '▼ 닫기' : '▲ 구간 목록 보기';
 }
 
-// 스와이프 제스처
-let startY = 0;
 const sheet = document.getElementById('bottom-sheet');
 const handle = document.getElementById('sheet-handle');
-
+let startY = 0;
 handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
 handle.addEventListener('touchend', e => {
   const diff = startY - e.changedTouches[0].clientY;
-  if (diff > 30) { sheetOpen = false; sheet.classList.remove('open'); document.getElementById('sheet-title').textContent = '▲ 구간 목록 보기'; }
-  else if (diff < -30) { sheetOpen = true; sheet.classList.add('open'); document.getElementById('sheet-title').textContent = '▼ 닫기'; }
+  if (diff > 30) { sheetOpen = true; sheet.classList.add('open'); document.getElementById('sheet-title').textContent = '▼ 닫기'; }
+  else if (diff < -30) { sheetOpen = false; sheet.classList.remove('open'); document.getElementById('sheet-title').textContent = '▲ 구간 목록 보기'; }
 }, {passive:true});
 
 // 사이드바
@@ -302,16 +370,7 @@ Object.entries(GROUPS).forEach(([title, nos]) => {
         <div class="seg-meta">폭 ${seg.w}m × ${seg.l.toLocaleString()}m</div>
       </div>
       <div class="seg-area">${seg.area.toLocaleString()}㎡</div>`;
-    el.onclick = () => {
-      map.setView(seg.s, 16);
-      segMarkers[n].openPopup();
-      // 시트 닫기
-      sheetOpen = false;
-      sheet.classList.remove('open');
-      document.getElementById('sheet-title').textContent = '▲ 구간 목록 보기';
-      if (activeNo) document.getElementById(`si-${activeNo}`).classList.remove('active');
-      el.classList.add('active'); activeNo = n;
-    };
+    el.onclick = () => focusSeg(n);
     segListEl.appendChild(el);
   });
 });
